@@ -21,14 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dholsagar.app.R
-import com.dholsagar.app.core.navigation.Screen
+import com.dholsagar.app.core.navigation.Route
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.ApiException
 
 @Composable
 fun AuthScreen(
     navController: NavController,
-    viewModel: AuthViewModel // Passed from navigation graph
+    viewModel: AuthViewModel // Passed from the navigation graph
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -50,8 +50,8 @@ fun AuthScreen(
         }
     )
 
-    // This LaunchedEffect handles ALL UI events from the ViewModel
-    LaunchedEffect(key1 = Unit) {
+    // This LaunchedEffect handles ALL one-time UI events from the ViewModel
+    LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is AuthUiEvent.LaunchGoogleSignIn -> {
@@ -62,20 +62,21 @@ fun AuthScreen(
                 is AuthUiEvent.Navigate -> {
                     navController.navigate(event.route)
                 }
-                // THIS BRANCH WAS MISSING, CAUSING THE "when must be exhaustive" ERROR
-                is AuthUiEvent.NavigateAndPopUpTo -> {
+                // This now resolves correctly because we defined it in the ViewModel
+                is AuthUiEvent.NavigateAndPopUp -> {
+                    // CORRECTED SYNTAX: The popUpTo logic must be inside a lambda
                     navController.navigate(event.route) {
-                        popUpTo(event.popUpTo) { inclusive = true }
+                        popUpTo(event.popUpTo) {
+                            inclusive = true
+                        }
                     }
                 }
             }
         }
     }
 
-    // THIS LAUNCHEDEFFECT WAS USING THE OLD `signInSuccess` STATE AND IS NO LONGER NEEDED.
-    // IT HAS BEEN REMOVED TO FIX THE "Unresolved reference" ERROR.
-    // Error toasts are now handled by a separate, cleaner LaunchedEffect.
 
+    // This LaunchedEffect is only for showing error Toasts
     LaunchedEffect(key1 = state.error) {
         state.error?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -133,7 +134,7 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedButton(
-                    onClick = { navController.navigate(Screen.PhoneAuthScreen.route) },
+                    onClick = { navController.navigate(Route.PHONE_AUTH) },
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 12.dp),
                     enabled = !state.isLoading

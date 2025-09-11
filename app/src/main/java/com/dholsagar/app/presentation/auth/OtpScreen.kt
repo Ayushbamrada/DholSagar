@@ -12,29 +12,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.dholsagar.app.core.navigation.Screen
+import com.dholsagar.app.core.navigation.Route
 
 @Composable
 fun OtpScreen(
     navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel // Passed from the navigation graph
 ) {
     val state by viewModel.state.collectAsState()
     val otp by viewModel.otp.collectAsState()
     val context = LocalContext.current
 
-    // This LaunchedEffect listens for one-time events like navigation
+    // This LaunchedEffect will listen for one-time events from the ViewModel
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is AuthUiEvent.Navigate -> {
-                    // Navigate to the destination provided by the ViewModel
+                is AuthUiEvent.NavigateAndPopUp -> {
                     navController.navigate(event.route) {
-                        // Clear the entire back stack up to the splash screen
-                        // so the user can't go back to the auth flow.
-                        popUpTo(Screen.SplashScreen.route)
+                        popUpTo(event.popUpTo) { inclusive = true }
                     }
                 }
                 // Ignore other events not relevant to this screen
@@ -82,7 +78,7 @@ fun OtpScreen(
                 Button(
                     onClick = viewModel::onVerifyOtpClick,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !state.isLoading // Disable button while loading
+                    enabled = !state.isLoading && otp.length == 6
                 ) {
                     Text("Verify & Continue")
                 }

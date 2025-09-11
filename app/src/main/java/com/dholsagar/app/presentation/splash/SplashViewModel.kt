@@ -3,6 +3,7 @@ package com.dholsagar.app.presentation.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dholsagar.app.core.navigation.Route
 //import com.dholsagar.app.core.navigation.Screen
 import com.dholsagar.app.core.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,7 @@ class SplashViewModel @Inject constructor() : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _startDestination = MutableStateFlow(Screen.UserTypeSelectionScreen.route)
+    private val _startDestination = MutableStateFlow(Route.USER_TYPE_SELECTION)
     val startDestination = _startDestination.asStateFlow()
 
     init {

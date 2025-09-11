@@ -189,6 +189,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.dholsagar.app.R
+import com.dholsagar.app.core.navigation.Route
 import com.dholsagar.app.core.navigation.Screen
 import com.dholsagar.app.presentation.ui.theme.SetSystemBarColor
 import kotlinx.coroutines.delay
@@ -233,7 +234,8 @@ fun UserTypeSelectionScreen(navController: NavController) {
                 subtitle = "Book authentic cultural bands for your event.",
                 iconResId = R.drawable.baseline_person_24,
                 onClick = {
-                    navController.navigate(Screen.AuthScreen.createRoute("USER"))
+                    // Navigate to the auth graph, passing the userType to the graph itself
+                    navController.navigate("${Route.AUTH_GRAPH}/USER")
                 },
                 delay = 0L
             )
@@ -243,7 +245,7 @@ fun UserTypeSelectionScreen(navController: NavController) {
                 subtitle = "List your band and get bookings from across the state.",
                 iconResId = R.drawable.baseline_storefront_24,
                 onClick = {
-                    navController.navigate(Screen.AuthScreen.createRoute("PROVIDER"))
+                    navController.navigate("${Route.AUTH_GRAPH}/PROVIDER")
                 },
                 delay = 200L
             )

@@ -2,17 +2,21 @@
 //package com.dholsagar.app.core.navigation
 //
 //import androidx.compose.runtime.Composable
+//import androidx.compose.runtime.remember
+//import androidx.hilt.navigation.compose.hiltViewModel
+//import androidx.navigation.NavGraphBuilder
+//import androidx.navigation.NavHostController
 //import androidx.navigation.NavType
 //import androidx.navigation.compose.NavHost
 //import androidx.navigation.compose.composable
 //import androidx.navigation.compose.rememberNavController
 //import androidx.navigation.navArgument
-//import com.dholsagar.app.presentation.auth.AuthScreen
-//import com.dholsagar.app.presentation.auth.OtpScreen
-//import com.dholsagar.app.presentation.auth.PhoneAuthScreen
-//import com.dholsagar.app.presentation.auth.UserTypeSelectionScreen
+//import androidx.navigation.navigation
+//import com.dholsagar.app.presentation.auth.*
 //import com.dholsagar.app.presentation.home_provider.ProviderHomeScreen
 //import com.dholsagar.app.presentation.home_user.UserHomeScreen
+//import com.dholsagar.app.presentation.onboarding_provider.ProviderOnboardingScreen
+//import com.dholsagar.app.presentation.onboarding_user.UserOnboardingScreen
 //import com.dholsagar.app.presentation.splash.SplashScreen
 //
 //@Composable
@@ -21,53 +25,92 @@
 //
 //    NavHost(
 //        navController = navController,
-//        startDestination = Screen.SplashScreen.route
+//        startDestination = Route.SPLASH
 //    ) {
-//        composable(route = Screen.SplashScreen.route) {
+//        composable(route = Route.SPLASH) {
 //            SplashScreen(navController = navController)
 //        }
-//        composable(route = Screen.UserTypeSelectionScreen.route) {
+//
+//        // The entire authentication flow is now a self-contained, nested graph.
+//        authGraph(navController)
+//
+//        // --- Screens outside the authentication flow ---
+//        composable(route = Route.USER_HOME) {
+//            UserHomeScreen()
+//        }
+//        composable(route = Route.PROVIDER_HOME) {
+//            ProviderHomeScreen()
+//        }
+//
+//    }
+//}
+//
+//// This extension function defines the authentication sub-graph.
+//// All screens inside this block share the same instance of AuthViewModel.
+//fun NavGraphBuilder.authGraph(navController: NavHostController) {
+//    navigation(
+//        startDestination = Route.USER_TYPE_SELECTION,
+//        route = Route.AUTH_GRAPH
+//    ) {
+//        composable(route = Route.USER_TYPE_SELECTION) {
 //            UserTypeSelectionScreen(navController = navController)
 //        }
+//
 //        composable(
 //            route = Screen.AuthScreen.route,
 //            arguments = listOf(navArgument("userType") { type = NavType.StringType })
-//        ) {
-//            AuthScreen(navController = navController)
+//        ) { backStackEntry ->
+//            // Get the backStackEntry of the parent graph (auth_graph)
+//            val parentEntry = remember(backStackEntry) {
+//                navController.getBackStackEntry(Route.AUTH_GRAPH)
+//            }
+//            // Create the shared ViewModel using the parent's entry
+//            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+//            AuthScreen(navController = navController, viewModel = authViewModel)
 //        }
-//        composable(route = Screen.PhoneAuthScreen.route) {
-//            // FIX: Pass the navController
-//            PhoneAuthScreen(navController = navController)
+//
+//        composable(route = Route.PHONE_AUTH) { backStackEntry ->
+//            val parentEntry = remember(backStackEntry) {
+//                navController.getBackStackEntry(Route.AUTH_GRAPH)
+//            }
+//            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+//            PhoneAuthScreen(navController = navController, viewModel = authViewModel)
 //        }
-//        composable(route = Screen.OtpScreen.route) {
-//            // FIX: Pass the navController
-//            OtpScreen(navController = navController)
+//
+//        composable(route = Route.OTP) { backStackEntry ->
+//            val parentEntry = remember(backStackEntry) {
+//                navController.getBackStackEntry(Route.AUTH_GRAPH)
+//            }
+//            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+//            OtpScreen(navController = navController, viewModel = authViewModel)
 //        }
-//        composable(route = Screen.UserHomeScreen.route) {
-//            UserHomeScreen()
+//
+//        composable(route = Route.USER_ONBOARDING) {
+//            UserOnboardingScreen(navController = navController)
 //        }
-//        composable(route = Screen.ProviderHomeScreen.route) {
-//            ProviderHomeScreen()
+//        composable(route = Route.PROVIDER_ONBOARDING) {
+//            ProviderOnboardingScreen(navController = navController)
 //        }
 //    }
 //}
 
-// file: com/dholsagar/app/core/navigation/AppNavigation.kt
+
+/// file: com/dholsagar/app/core/navigation/AppNavigation.kt
 package com.dholsagar.app.core.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.dholsagar.app.presentation.auth.*
 import com.dholsagar.app.presentation.home_provider.ProviderHomeScreen
 import com.dholsagar.app.presentation.home_user.UserHomeScreen
+import com.dholsagar.app.presentation.onboarding_provider.ProviderOnboardingScreen
+import com.dholsagar.app.presentation.onboarding_user.UserOnboardingScreen
 import com.dholsagar.app.presentation.splash.SplashScreen
 
 @Composable
@@ -76,62 +119,63 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.SplashScreen.route
+        startDestination = Route.SPLASH
     ) {
-        composable(route = Screen.SplashScreen.route) {
+        composable(route = Route.SPLASH) {
             SplashScreen(navController = navController)
         }
-        composable(route = Screen.UserTypeSelectionScreen.route) {
+
+        composable(route = Route.USER_TYPE_SELECTION) {
             UserTypeSelectionScreen(navController = navController)
         }
 
-        // ===================================================================
-        // == NESTED AUTHENTICATION GRAPH
-        // ===================================================================
-        // All screens inside this block (`AuthScreen`, `PhoneAuthScreen`, `OtpScreen`)
-        // will share the exact same instance of AuthViewModel.
-        navigation(
-            // The graph starts at AuthScreen and needs the userType argument
-            startDestination = Screen.AuthScreen.route,
-            route = Route.AUTH_GRAPH,
-            arguments = listOf(navArgument("userType") { type = NavType.StringType })
-        ) {
-            composable(route = Screen.AuthScreen.route) { backStackEntry ->
-                // 1. Get the backStackEntry of the parent navigation graph
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Route.AUTH_GRAPH)
-                }
-                // 2. Use the parent's entry to create the shared ViewModel
-                val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
-                // 3. Pass the shared ViewModel to the screen
-                AuthScreen(navController = navController, viewModel = authViewModel)
-            }
+        authGraph(navController)
 
-            composable(route = Screen.PhoneAuthScreen.route) { backStackEntry ->
-                // Do the same for PhoneAuthScreen to get the *same* ViewModel instance
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Route.AUTH_GRAPH)
-                }
-                val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
-                PhoneAuthScreen(navController = navController, viewModel = authViewModel)
-            }
+        // --- Screens outside the authentication flow ---
+        composable(route = Route.USER_HOME) { UserHomeScreen() }
+        composable(route = Route.PROVIDER_HOME) { ProviderHomeScreen() }
+    }
+}
 
-            composable(route = Screen.OtpScreen.route) { backStackEntry ->
-                // And again for OtpScreen
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Route.AUTH_GRAPH)
-                }
-                val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
-                OtpScreen(navController = navController, viewModel = authViewModel)
+fun NavGraphBuilder.authGraph(navController: NavHostController) {
+    navigation(
+        startDestination = Route.AUTH,
+        route = Screen.AuthGraph.route, // FIX: Must be Screen.AuthGraph.route
+        arguments = listOf(navArgument("userType") { type = NavType.StringType }),
+        deepLinks = emptyList()
+    ) {
+        composable(route = Route.AUTH) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                // FIX: Must be Screen.AuthGraph.route
+                navController.getBackStackEntry(Screen.AuthGraph.route)
             }
+            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+            AuthScreen(navController = navController, viewModel = authViewModel)
         }
 
-        // --- Other Screens ---
-        composable(route = Screen.UserHomeScreen.route) {
-            UserHomeScreen()
+        composable(route = Route.PHONE_AUTH) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                // FIX: Must be Screen.AuthGraph.route
+                navController.getBackStackEntry(Screen.AuthGraph.route)
+            }
+            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+            PhoneAuthScreen(navController = navController, viewModel = authViewModel)
         }
-        composable(route = Screen.ProviderHomeScreen.route) {
-            ProviderHomeScreen()
+
+        composable(route = Route.OTP) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                // FIX: Must be Screen.AuthGraph.route
+                navController.getBackStackEntry(Screen.AuthGraph.route)
+            }
+            val authViewModel = hiltViewModel<AuthViewModel>(parentEntry)
+            OtpScreen(navController = navController, viewModel = authViewModel)
+        }
+
+        composable(route = Route.USER_ONBOARDING) {
+            UserOnboardingScreen(navController = navController)
+        }
+        composable(route = Route.PROVIDER_ONBOARDING) {
+            ProviderOnboardingScreen(navController = navController)
         }
     }
 }
