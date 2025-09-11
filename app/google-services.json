@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "963475171416",
+    "project_id": "dholsagarbackend",
+    "storage_bucket": "dholsagarbackend.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963475171416:android:5ec28ca5ddb1d451e7c22d",
+        "android_client_info": {
+          "package_name": "com.dholsagar.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "963475171416-afq9b4ad24q3p8h8o9ohileiftus7446.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dholsagar.app",
+            "certificate_hash": "f28e3005af44b2e364944d3a11cd769f2b6c2779"
+          }
+        },
+        {
+          "client_id": "963475171416-r9dmqaakib734q3kihja7qg891np8o9j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKTtOeV4Yjv3gkOJQ0bysEvFeLD0Zrrvk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "963475171416-r9dmqaakib734q3kihja7qg891np8o9j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
