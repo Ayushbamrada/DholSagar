@@ -202,6 +202,8 @@ dependencies {
     // Accompanist for System UI
     implementation(libs.accompanist.systemuicontroller)
 
+    implementation(libs.coil.compose)
+
     // REMOVED: transportation-consumer was incorrect for this app and was causing issues.
     // implementation(libs.transportation.consumer)
 

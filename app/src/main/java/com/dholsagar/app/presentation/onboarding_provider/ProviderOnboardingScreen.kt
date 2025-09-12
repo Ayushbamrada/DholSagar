@@ -109,9 +109,12 @@
 //        }
 //    }
 //}
+
+
 // file: com/dholsagar/app/presentation/onboarding_provider/ProviderOnboardingScreen.kt
 package com.dholsagar.app.presentation.onboarding_provider
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -142,6 +145,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -150,6 +154,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.dholsagar.app.core.navigation.Route
 import com.dholsagar.app.presentation.onboarding_provider.components.AddTeamMemberDialog
 import com.dholsagar.app.presentation.onboarding_provider.components.KycPage
 import com.dholsagar.app.presentation.onboarding_provider.components.PersonalDetailsPage
@@ -157,6 +162,7 @@ import com.dholsagar.app.presentation.onboarding_provider.components.PortfolioPa
 import com.dholsagar.app.presentation.onboarding_provider.components.SkillsAndExperiencePage
 import com.dholsagar.app.presentation.onboarding_provider.components.pagerTabIndicatorOffset
 import kotlinx.coroutines.launch
+//import kotlin.coroutines.jvm.internal.CompletedContinuation.context
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -168,12 +174,38 @@ fun ProviderOnboardingScreen(
     val scope = rememberCoroutineScope()
     val showAddMemberDialog by viewModel.showAddMemberDialog.collectAsState()
 
-    // Collect all state from ViewModel
+    // Collect ALL state from ViewModel
     val name by viewModel.name.collectAsState()
     val bandName by viewModel.bandName.collectAsState()
+    val role by viewModel.role.collectAsState()
     val gmail by viewModel.gmail.collectAsState()
     val experience by viewModel.experience.collectAsState()
     val teamMembers by viewModel.teamMembers.collectAsState()
+    val portfolioImageUris by viewModel.portfolioImageUris.collectAsState()
+    val portfolioVideoUri by viewModel.portfolioVideoUri.collectAsState()
+    val youtubeLink by viewModel.youtubeLink.collectAsState()
+    val kycDocumentUris by viewModel.kycDocumentUris.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    // --- THIS IS THE FIX: Listen for navigation and error events ---
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is OnboardingEvent.Navigate -> {
+                    navController.navigate(event.route) {
+                        popUpTo(Route.AUTH_GRAPH) { inclusive = true }
+                    }
+                }
+            }
+        }
+    }
+//    LaunchedEffect(key1 = error) {
+//        error?.let {
+//            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+//            viewModel.onErrorShown()
+//        }
+//        }
+
 
     Scaffold(
         modifier = Modifier
@@ -182,18 +214,16 @@ fun ProviderOnboardingScreen(
             .navigationBarsPadding()
             .imePadding(),
         topBar = {
-            Column { // MODIFICATION: Removed horizontal padding from here
+            Column {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Become a Provider",
                     style = MaterialTheme.typography.headlineLarge,
-                    modifier = Modifier.padding(horizontal = 24.dp) // Apply padding to title
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // MODIFICATION: Replaced TabRow with ScrollableTabRow.
-                // This allows the tabs to scroll horizontally if they don't fit,
-                // preventing the text from wrapping and breaking the layout.
+                // MODIFICATION
                 ScrollableTabRow(
                     selectedTabIndex = pagerState.currentPage,
                     indicator = { tabPositions ->
@@ -238,15 +268,16 @@ fun ProviderOnboardingScreen(
                 }
 
                 // Next / Submit Button
-                Button(onClick = {
-                    if (pagerState.currentPage < viewModel.pagerSteps.size - 1) {
-                        scope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                Button(
+                    onClick = {
+                        if (pagerState.currentPage < viewModel.pagerSteps.size - 1) {
+                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                        } else {
+                            viewModel.onSubmit() // CONNECTED
                         }
-                    } else {
-                        // TODO: Final Submit Logic
-                    }
-                }) {
+                    },
+                    enabled = !isLoading // Disable while submitting
+                ) {
                     Text(if (pagerState.currentPage == viewModel.pagerSteps.size - 1) "Submit" else "Next")
                 }
             }
@@ -273,7 +304,9 @@ fun ProviderOnboardingScreen(
                         bandName = bandName,
                         onBandNameChange = viewModel::onBandNameChange,
                         gmail = gmail,
-                        onGmailChange = viewModel::onGmailChange
+                        onGmailChange = viewModel::onGmailChange,
+                        role = role,
+                        onRoleChange = viewModel::onRoleChange
                     )
                     1 -> SkillsAndExperiencePage(
                         experience = experience,
@@ -281,10 +314,21 @@ fun ProviderOnboardingScreen(
                         teamMembers = teamMembers,
                         onAddMemberClicked = viewModel::onShowAddMemberDialog
                     )
-                    2 -> PortfolioPage()
+                    2 -> PortfolioPage(
+                        selectedImageUris = portfolioImageUris,
+                        onImagesSelected = viewModel::onPortfolioImagesSelected,
+                        onRemoveImage = viewModel::onRemovePortfolioImage,
+                        selectedVideoUri = portfolioVideoUri,
+                        onVideoSelected = viewModel::onPortfolioVideoSelected,
+                        youtubeLink = youtubeLink,
+                        onYoutubeLinkChange = viewModel::onYoutubeLinkChange
+                    )
                     3 -> KycPage(
                         providerName = name,
-                        teamMembers = teamMembers
+                        teamMembers = teamMembers,
+                        selectedKycUris = kycDocumentUris,
+                        onDocumentSelected = viewModel::onKycDocumentSelected,
+                        onRemoveDocument = viewModel::onRemoveKycDocument
                     )
                 }
             }
