@@ -225,6 +225,11 @@ class ProviderOnboardingViewModel @Inject constructor(
     val isLoading = _isLoading.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
+    private val _phone = MutableStateFlow("")
+    val phone = _phone.asStateFlow()
+
+    val isPhoneEditable = authRepository.currentUser?.phoneNumber.isNullOrEmpty()
+    val isEmailEditable = authRepository.currentUser?.email.isNullOrEmpty()
 
     // --- Page State ---
     private val _name = MutableStateFlow("")
@@ -255,6 +260,21 @@ class ProviderOnboardingViewModel @Inject constructor(
     val newMemberName = _newMemberName.asStateFlow()
     private val _newMemberRole = MutableStateFlow("")
     val newMemberRole = _newMemberRole.asStateFlow()
+
+
+    init {
+        authRepository.currentUser?.let { user ->
+            _name.value = user.displayName ?: ""
+            _gmail.value = user.email ?: ""
+            _phone.value = user.phoneNumber?.removePrefix("+91") ?: ""
+        }
+    }
+
+    fun onPhoneChange(value: String) {
+        if (value.all { it.isDigit() } && value.length <= 10) {
+            _phone.value = value
+        }
+    }
 
     // --- Event Handlers ---
     fun onNameChange(value: String) {
@@ -300,6 +320,8 @@ class ProviderOnboardingViewModel @Inject constructor(
     fun onRemoveKycDocument(docId: String) {
         _kycDocumentUris.update { it - docId }
     }
+
+
 
     fun onErrorShown() {
         _error.value = null

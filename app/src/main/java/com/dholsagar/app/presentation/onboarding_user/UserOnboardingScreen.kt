@@ -3,6 +3,7 @@ package com.dholsagar.app.presentation.onboarding_user
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -23,6 +25,7 @@ fun UserOnboardingScreen(
 ) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
+    val phone by viewModel.phone.collectAsState()
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
@@ -72,7 +75,19 @@ fun UserOnboardingScreen(
                     onValueChange = viewModel::onEmailChange,
                     label = { Text("Email Address (Optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    enabled = viewModel.isEmailEditable
+                )
+
+                // Phone TextField
+                OutlinedTextField(
+                    value = phone, onValueChange = viewModel::onPhoneChange,
+                    label = { Text("Phone Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    prefix = { Text("+91 ") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    enabled = viewModel.isPhoneEditable // Control editing
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))

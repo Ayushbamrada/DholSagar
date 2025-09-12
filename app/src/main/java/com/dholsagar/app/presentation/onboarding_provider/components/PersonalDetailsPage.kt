@@ -89,6 +89,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Person
@@ -109,7 +110,10 @@ fun PersonalDetailsPage(
     onBandNameChange: (String) -> Unit,
     gmail: String,
     onGmailChange: (String) -> Unit,
-    role: String, onRoleChange: (String) -> Unit
+    role: String, onRoleChange: (String) -> Unit,
+    phone: String, onPhoneChange: (String) -> Unit, // Add phone params
+    isPhoneEditable: Boolean, // Add editable flags
+    isEmailEditable: Boolean
 ) {
     // MODIFICATION: Added .verticalScroll to the Column.
     // This makes the entire page scrollable, solving the keyboard issue.
@@ -150,7 +154,20 @@ fun PersonalDetailsPage(
             modifier = Modifier.fillMaxWidth(),
             leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true
+            singleLine = true,
+            enabled = isEmailEditable,
+        )
+        OutlinedTextField(
+            value = phone,
+            onValueChange = onPhoneChange,
+            label = { Text("Contact Phone Number") },
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = { Icon(Icons.Outlined.Call, contentDescription = null) },
+            prefix = { Text("+91 ") },
+            singleLine = true,
+            enabled = isPhoneEditable,
+            // Use flag
+            /*...*/
         )
         OutlinedTextField(
             value = role,

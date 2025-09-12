@@ -43,11 +43,25 @@ class UserOnboardingViewModel @Inject constructor(
     private val _email = MutableStateFlow("")
     val email = _email.asStateFlow()
 
+    private val _phone = MutableStateFlow("")
+    val phone = _phone.asStateFlow()
+
+    // Determine which field should be enabled based on sign-in method
+    val isPhoneEditable = authRepository.currentUser?.phoneNumber.isNullOrEmpty()
+    val isEmailEditable = authRepository.currentUser?.email.isNullOrEmpty()
+
     init {
-        // Pre-fill fields if user signed in with Google
+        // Pre-fill fields from the Firebase user object
         authRepository.currentUser?.let { user ->
             _name.value = user.displayName ?: ""
             _email.value = user.email ?: ""
+            _phone.value = user.phoneNumber?.removePrefix("+91") ?: ""
+        }
+    }
+
+    fun onPhoneChange(newPhone: String) {
+        if (newPhone.all { it.isDigit() } && newPhone.length <= 10) {
+            _phone.value = newPhone
         }
     }
 
@@ -61,12 +75,17 @@ class UserOnboardingViewModel @Inject constructor(
 
 
     fun onSaveClick() {
+        if (_phone.value.length != 10) {
+            _state.update { it.copy(error = "Please enter a valid 10-digit phone number.") }
+            return
+        }
         viewModelScope.launch {
             val uid = authRepository.currentUser?.uid
             if (uid == null) {
                 _state.update { it.copy(error = "User not found. Please log in again.") }
                 return@launch
             }
+
 
             _state.update { it.copy(isLoading = true) }
 

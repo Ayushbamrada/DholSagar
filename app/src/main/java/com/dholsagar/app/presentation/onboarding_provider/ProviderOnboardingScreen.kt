@@ -179,6 +179,7 @@ fun ProviderOnboardingScreen(
     val bandName by viewModel.bandName.collectAsState()
     val role by viewModel.role.collectAsState()
     val gmail by viewModel.gmail.collectAsState()
+    val phone by viewModel.phone.collectAsState()
     val experience by viewModel.experience.collectAsState()
     val teamMembers by viewModel.teamMembers.collectAsState()
     val portfolioImageUris by viewModel.portfolioImageUris.collectAsState()
@@ -306,7 +307,9 @@ fun ProviderOnboardingScreen(
                         gmail = gmail,
                         onGmailChange = viewModel::onGmailChange,
                         role = role,
-                        onRoleChange = viewModel::onRoleChange
+                        onRoleChange = viewModel::onRoleChange,phone = phone, onPhoneChange = viewModel::onPhoneChange, // Pass new state
+                        isPhoneEditable = viewModel.isPhoneEditable, // Pass new flags
+                        isEmailEditable = viewModel.isEmailEditable
                     )
                     1 -> SkillsAndExperiencePage(
                         experience = experience,
