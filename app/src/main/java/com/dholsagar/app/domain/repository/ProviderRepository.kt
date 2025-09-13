@@ -30,6 +30,7 @@ import com.dholsagar.app.presentation.onboarding_provider.TeamMember
 interface ProviderRepository {
 
     suspend fun getProviders(): Resource<List<ServiceProvider>>
+    suspend fun getProviderDetails(providerId: String): Resource<ServiceProvider> // ADD THIS
     suspend fun uploadFile(uri: Uri, path: String): Resource<String>
     suspend fun createProviderProfile(
         uid: String,

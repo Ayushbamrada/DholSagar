@@ -22,7 +22,7 @@ data class OnboardingState(
 )
 
 sealed class OnboardingEvent {
-    data class Navigate(val route: String) : OnboardingEvent()
+    data class NavigateAndPopUp(val route: String, val popUpTo: String) : OnboardingEvent()
 }
 
 @HiltViewModel
@@ -90,7 +90,7 @@ class UserOnboardingViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
 
             // Step 1: Update the user's profile with the new name and email
-            val updateResult = userRepository.updateUserProfile(uid, _name.value, _email.value)
+            val updateResult = userRepository.updateUserProfile(uid, _name.value, _email.value, _phone.value)
 
             if (updateResult is Resource.Success) {
                 // Step 2: After successful update, get the user's role from Firestore
@@ -103,7 +103,8 @@ class UserOnboardingViewModel @Inject constructor(
                         } else {
                             Route.USER_HOME
                         }
-                        _eventChannel.send(OnboardingEvent.Navigate(destination))
+                        // Send the new event to clear the back stack
+                        _eventChannel.send(OnboardingEvent.NavigateAndPopUp(destination, Route.AUTH_GRAPH))
                     }
                     is Resource.Error -> {
                         _state.update { it.copy(isLoading = false, error = profileResult.message) }

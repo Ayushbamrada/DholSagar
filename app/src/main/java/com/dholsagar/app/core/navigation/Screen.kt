@@ -50,6 +50,7 @@ object Route {
     const val PROVIDER_HOME = "provider_home"
     const val USER_ONBOARDING = "user_onboarding"
     const val PROVIDER_ONBOARDING = "provider_onboarding"
+    const val PROVIDER_DETAILS = "provider_details"
 }
 
 sealed class Screen(val route: String) {
@@ -68,4 +69,7 @@ sealed class Screen(val route: String) {
     data object ProviderHomeScreen : Screen(Route.PROVIDER_HOME)
     data object UserOnboardingScreen : Screen(Route.USER_ONBOARDING)
     data object ProviderOnboardingScreen : Screen(Route.PROVIDER_ONBOARDING)
+    data object ProviderDetailsScreen : Screen("${Route.PROVIDER_DETAILS}/{providerId}") {
+        fun createRoute(providerId: String) = "${Route.PROVIDER_DETAILS}/$providerId"
+    }
 }

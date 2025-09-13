@@ -112,6 +112,7 @@ import com.dholsagar.app.presentation.home_user.UserHomeScreen
 import com.dholsagar.app.presentation.onboarding_provider.ProviderOnboardingScreen
 import com.dholsagar.app.presentation.onboarding_user.UserOnboardingScreen
 import com.dholsagar.app.presentation.splash.SplashScreen
+import com.dholsagar.app.presentation.provider_details.ProviderDetailsScreen
 
 @Composable
 fun AppNavigation() {
@@ -132,8 +133,14 @@ fun AppNavigation() {
         authGraph(navController)
 
         // --- Screens outside the authentication flow ---
-        composable(route = Route.USER_HOME) { UserHomeScreen() }
+        composable(route = Route.USER_HOME) {  UserHomeScreen(navController = navController) }
         composable(route = Route.PROVIDER_HOME) { ProviderHomeScreen() }
+        composable(
+            route = Screen.ProviderDetailsScreen.route,
+            arguments = listOf(navArgument("providerId") { type = NavType.StringType })
+        ) {
+            ProviderDetailsScreen(navController = navController)
+        }
     }
 }
 

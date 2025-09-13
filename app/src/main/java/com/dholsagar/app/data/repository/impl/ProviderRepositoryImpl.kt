@@ -46,6 +46,38 @@ class ProviderRepositoryImpl @Inject constructor(
         }
     }
 
+    // THIS IS THE MISSING FUNCTION IMPLEMENTATION
+    override suspend fun getProviderDetails(providerId: String): Resource<ServiceProvider> {
+        return try {
+            val document = firestore.collection("serviceProviders").document(providerId).get().await()
+            val dto = document.toObject(ServiceProviderDto::class.java)
+
+            if (dto != null) {
+                val provider = ServiceProvider(
+                    uid = dto.providerUid ?: "",
+                    bandName = dto.bandName ?: "Unknown Band",
+                    leadProviderName = dto.leadProviderName ?: "",
+                    leadProviderRole = dto.leadProviderRole ?: "",
+                    location = dto.location ?: "Unknown Location",
+                    experienceYears = dto.experienceYears ?: 0,
+                    portfolioImageUrls = dto.portfolioImages ?: emptyList(),
+                    portfolioVideoUrl = dto.portfolioVideoUrl,
+                    youtubeLink = dto.youtubeLink,
+                    teamMembers = dto.teamMembers?.map {
+                        TeamMember(it["name"] ?: "", it["role"] ?: "")
+                    } ?: emptyList(),
+                    kycStatus = dto.kycStatus ?: "PENDING"
+                )
+                Resource.Success(provider)
+            } else {
+                Resource.Error("Provider details not found.")
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Resource.Error(e.message ?: "Failed to fetch provider details.")
+        }
+    }
+
 
     override suspend fun uploadFile(uri: Uri, path: String): Resource<String> {
         return try {
