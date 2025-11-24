@@ -112,11 +112,11 @@
 // File: app/build.gradle.kts (App-level)
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.google.gms.services)
+    id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -145,8 +145,6 @@ android {
         }
     }
 
-    // IMPORTANT: Modern Android apps require Java 17.
-    // Using 1.8 was causing compatibility problems.
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -187,25 +185,23 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Firebase (using Bill of Materials for version management)
+    // Firebase (BOM)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
-    implementation(libs.play.services.auth) // For Google Sign-In
+    implementation(libs.play.services.auth)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Accompanist for System UI
+    // Accompanist
     implementation(libs.accompanist.systemuicontroller)
 
     implementation(libs.coil.compose)
-
-    // REMOVED: transportation-consumer was incorrect for this app and was causing issues.
-    // implementation(libs.transportation.consumer)
+    implementation(libs.firebase.appcheck)
 
     // Testing
     testImplementation(libs.junit)

@@ -20,7 +20,7 @@ composeCompiler = "1.5.11" # IMPORTANT: Must match Kotlin version
 navigationCompose = "2.7.7"
 
 # Hilt (Dependency Injection)
-hilt = "2.51.1"
+hilt = "2.48"
 hiltNavigationCompose = "1.2.0"
 
 # Firebase
@@ -32,6 +32,7 @@ kotlinxCoroutines = "1.8.0"
 
 # Accompanist (UI Helpers)
 accompanist = "0.34.0"
+composeMaterial = "1.5.5"
 
 
 [libraries]
@@ -39,6 +40,7 @@ accompanist = "0.34.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+firebase-appcheck = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
 
 # Jetpack Compose
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -80,6 +82,7 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
 
 
 [plugins]
