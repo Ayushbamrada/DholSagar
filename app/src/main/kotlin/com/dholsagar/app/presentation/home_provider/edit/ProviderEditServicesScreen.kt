@@ -20,7 +20,7 @@ import com.dholsagar.app.presentation.home_provider.ProviderDashboardViewModel
 @Composable
 fun ProviderEditServicesScreen(
     navController: NavController,
-    viewModel: ProviderDashboardViewModel = hiltViewModel() // Reusing existing VM logic for simplicity
+    viewModel: ProviderDashboardViewModel = hiltViewModel()
 ) {
     val description by viewModel.description.collectAsState()
     val specialty by viewModel.specialty.collectAsState()
@@ -34,7 +34,6 @@ fun ProviderEditServicesScreen(
         if (state.saveSuccess) {
             snackbarHostState.showSnackbar("Details saved successfully!")
             viewModel.onSaveSuccessShown() // Reset flag
-            // Optional: navigate back after delay, or let user stay
         }
     }
 

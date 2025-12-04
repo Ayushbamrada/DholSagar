@@ -203,6 +203,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.dholsagar.app.presentation.auth.*
+import com.dholsagar.app.presentation.home_provider.bookings.ProviderBookingDetailScreen
 import com.dholsagar.app.presentation.home_user.UserHomeScreen
 import com.dholsagar.app.presentation.main.ProviderMainScreen
 import com.dholsagar.app.presentation.onboarding_provider.ProviderOnboardingScreen
@@ -210,6 +211,7 @@ import com.dholsagar.app.presentation.onboarding_user.UserOnboardingScreen
 import com.dholsagar.app.presentation.provider_details.ProviderDetailsScreen
 import com.dholsagar.app.presentation.splash.SplashScreen
 import com.dholsagar.app.presentation.home_provider.edit.ProviderEditServicesScreen
+import com.dholsagar.app.presentation.home_provider.notifications.ProviderNotificationsScreen
 import com.dholsagar.app.presentation.home_provider.portfolio.ProviderManagePortfolioScreen
 
 @Composable
@@ -292,5 +294,15 @@ fun NavGraphBuilder.authGraph(navController: NavHostController) {
         composable(Route.PROVIDER_MANAGE_PORTFOLIO) {
             ProviderManagePortfolioScreen(navController = navController)
         }
+        composable(Route.PROVIDER_NOTIFICATIONS) {
+            ProviderNotificationsScreen(navController = navController)
+        }
+    }
+    composable(
+        route = Route.PROVIDER_BOOKING_DETAIL,
+        arguments = listOf(navArgument("bookingId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val bookingId = backStackEntry.arguments?.getString("bookingId")
+        ProviderBookingDetailScreen(navController = navController, bookingId = bookingId)
     }
 }

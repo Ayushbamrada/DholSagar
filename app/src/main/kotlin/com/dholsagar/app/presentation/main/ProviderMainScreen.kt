@@ -164,8 +164,10 @@ fun ProviderMainScreen(
                 ProviderDashboardScreen(navController = rootNavController)
             }
 
+
             composable(Route.PROVIDER_BOOKINGS) {
-                ProviderBookingsScreen()
+                // --- THIS IS THE FIX: Passing the controller ---
+                ProviderBookingsScreen(navController = rootNavController)
             }
 
             composable(Route.PROVIDER_PROFILE) {

@@ -9,6 +9,7 @@ data class BookingDto(
     val providerId: String? = null,
     val userName: String? = null,
     val userPhone: String? = null,
+    val location: String? = null,
     val startDate: Timestamp? = null,
     val endDate: Timestamp? = null,
     val totalCharge: Double? = null,

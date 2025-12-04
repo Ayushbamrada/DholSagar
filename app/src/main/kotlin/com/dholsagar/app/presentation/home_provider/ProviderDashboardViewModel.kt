@@ -1,6 +1,6 @@
-// file: com/dholsagar/app/presentation/home_provider/ProviderDashboardViewModel.kt
 package com.dholsagar.app.presentation.home_provider
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dholsagar.app.core.util.Resource
@@ -21,7 +21,8 @@ data class ProviderDashboardState(
     val error: String? = null,
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
-    val adBanner: AdBanner? = null
+    val adBanner: AdBanner? = null,
+    val isUploading: Boolean = false // New state for portfolio upload
 )
 
 @HiltViewModel
@@ -33,16 +34,13 @@ class ProviderDashboardViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProviderDashboardState())
     val state = _state.asStateFlow()
 
-    // --- State for the text fields ---
+    // Text fields state
     private val _description = MutableStateFlow("")
     val description = _description.asStateFlow()
-
     private val _specialty = MutableStateFlow("")
     val specialty = _specialty.asStateFlow()
-
     private val _perDayCharge = MutableStateFlow("")
     val perDayCharge = _perDayCharge.asStateFlow()
-
     private val _chargeDescription = MutableStateFlow("")
     val chargeDescription = _chargeDescription.asStateFlow()
 
@@ -59,76 +57,115 @@ class ProviderDashboardViewModel @Inject constructor(
                 return@launch
             }
 
-            // 1. Fetch Dynamic Ad Banner
-            // We fetch this first or in parallel so it's ready for the UI
+            // Fetch Ad
             when (val adResult = providerRepository.getDashboardAd()) {
-                is Resource.Success -> {
-                    _state.update { it.copy(adBanner = adResult.data) }
-                }
-                else -> {
-                    // If ad fetch fails, we just don't show it, no need to show error to user
-                }
+                is Resource.Success -> { _state.update { it.copy(adBanner = adResult.data) } }
+                else -> {}
             }
 
-            // 2. Fetch Provider Details
-            when (val result = providerRepository.getProviderDetails(uid)) {
-                is Resource.Success -> {
-                    val provider = result.data!!
-                    _state.update { it.copy(isLoading = false, provider = provider) }
-
-                    // --- Pre-fill the text fields with existing data ---
-                    _description.value = provider.description
-                    _specialty.value = provider.specialty
-                    _perDayCharge.value = provider.perDayCharge
-                    _chargeDescription.value = provider.chargeDescription
-                }
-                is Resource.Error -> {
-                    _state.update { it.copy(isLoading = false, error = result.message) }
-                }
-                else -> { _state.update { it.copy(isLoading = false) } }
-            }
+            // Fetch Details
+            fetchProviderDetails(uid)
         }
     }
 
-    // --- Functions to update text field state ---
+    private suspend fun fetchProviderDetails(uid: String) {
+        when (val result = providerRepository.getProviderDetails(uid)) {
+            is Resource.Success -> {
+                val provider = result.data!!
+                _state.update { it.copy(isLoading = false, provider = provider) }
+                _description.value = provider.description
+                _specialty.value = provider.specialty
+                _perDayCharge.value = provider.perDayCharge
+                _chargeDescription.value = provider.chargeDescription
+            }
+            is Resource.Error -> {
+                _state.update { it.copy(isLoading = false, error = result.message) }
+            }
+            else -> { _state.update { it.copy(isLoading = false) } }
+        }
+    }
+
+    // --- Text Field Updaters ---
     fun onDescriptionChange(text: String) { _description.value = text }
     fun onSpecialtyChange(text: String) { _specialty.value = text }
     fun onPerDayChargeChange(text: String) { _perDayCharge.value = text }
     fun onChargeDescriptionChange(text: String) { _chargeDescription.value = text }
 
-    // --- Function to save the data ---
     fun onSaveDetails() {
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, saveSuccess = false) }
-            val uid = authRepository.currentUser?.uid
-            if (uid == null) {
-                _state.update { it.copy(isSaving = false, error = "User not found.") }
-                return@launch
-            }
+            val uid = authRepository.currentUser?.uid ?: return@launch
 
             val result = providerRepository.updateProviderDetails(
-                uid = uid,
-                description = _description.value,
-                specialty = _specialty.value,
-                perDayCharge = _perDayCharge.value,
-                chargeDescription = _chargeDescription.value
+                uid, _description.value, _specialty.value, _perDayCharge.value, _chargeDescription.value
             )
 
             when(result) {
                 is Resource.Success -> {
                     _state.update { it.copy(isSaving = false, saveSuccess = true) }
-                    // Reload data to reflect changes immediately in the UI if needed
-                    // loadDashboardData()
+                    fetchProviderDetails(uid) // Refresh data
                 }
-                is Resource.Error -> {
-                    _state.update { it.copy(isSaving = false, error = result.message) }
-                }
-                else -> { _state.update { it.copy(isSaving = false) } }
+                is Resource.Error -> _state.update { it.copy(isSaving = false, error = result.message) }
+                else -> {}
             }
         }
     }
 
     fun onSaveSuccessShown() {
         _state.update { it.copy(saveSuccess = false) }
+    }
+
+    // --- NEW: Portfolio Logic ---
+
+    fun uploadPortfolioImage(uri: Uri) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUploading = true) }
+            val uid = authRepository.currentUser?.uid ?: return@launch
+
+            when(val result = providerRepository.addPortfolioImage(uid, uri)) {
+                is Resource.Success -> {
+                    fetchProviderDetails(uid) // Refresh UI
+                    _state.update { it.copy(isUploading = false) }
+                }
+                is Resource.Error -> {
+                    _state.update { it.copy(isUploading = false, error = result.message) }
+                }
+                else -> {}
+            }
+        }
+    }
+
+    fun deletePortfolioImage(url: String) {
+        viewModelScope.launch {
+            val uid = authRepository.currentUser?.uid ?: return@launch
+            providerRepository.removePortfolioImage(uid, url)
+            fetchProviderDetails(uid) // Refresh immediately
+        }
+    }
+
+    fun uploadPortfolioVideo(uri: Uri) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUploading = true) }
+            val uid = authRepository.currentUser?.uid ?: return@launch
+
+            when(val result = providerRepository.updatePortfolioVideo(uid, uri)) {
+                is Resource.Success -> {
+                    fetchProviderDetails(uid)
+                    _state.update { it.copy(isUploading = false) }
+                }
+                is Resource.Error -> {
+                    _state.update { it.copy(isUploading = false, error = result.message) }
+                }
+                else -> {}
+            }
+        }
+    }
+
+    fun deletePortfolioVideo() {
+        viewModelScope.launch {
+            val uid = authRepository.currentUser?.uid ?: return@launch
+            providerRepository.removePortfolioVideo(uid)
+            fetchProviderDetails(uid)
+        }
     }
 }

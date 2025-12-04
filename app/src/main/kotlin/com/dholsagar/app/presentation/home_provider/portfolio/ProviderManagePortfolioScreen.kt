@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +37,7 @@ import com.dholsagar.app.presentation.home_provider.ProviderDashboardViewModel
 @Composable
 fun ProviderManagePortfolioScreen(
     navController: NavController,
-    viewModel: ProviderDashboardViewModel = hiltViewModel() // Using same VM for now
+    viewModel: ProviderDashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val provider = state.provider
@@ -46,8 +47,16 @@ fun ProviderManagePortfolioScreen(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
-            // TODO: Implement Upload Image Logic in ViewModel
-            // viewModel.uploadPortfolioImage(uri)
+            viewModel.uploadPortfolioImage(uri)
+        }
+    }
+
+    // Video Picker
+    val videoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.uploadPortfolioVideo(uri)
         }
     }
 
@@ -59,7 +68,8 @@ fun ProviderManagePortfolioScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         floatingActionButton = {
@@ -72,9 +82,13 @@ fun ProviderManagePortfolioScreen(
                 containerColor = Color(0xFF5D4037),
                 contentColor = Color.White
             ) {
-                Icon(Icons.Filled.Add, null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add Photo")
+                if (state.isUploading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Icon(Icons.Filled.Add, null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add Photo")
+                }
             }
         }
     ) { padding ->
@@ -104,7 +118,7 @@ fun ProviderManagePortfolioScreen(
                                 contentScale = ContentScale.Crop
                             )
                             IconButton(
-                                onClick = { /* TODO: Delete Image Logic */ },
+                                onClick = { viewModel.deletePortfolioImage(url) },
                                 modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.White.copy(alpha=0.7f), RoundedCornerShape(4.dp))
                             ) {
                                 Icon(Icons.Filled.Delete, null, tint = Color.Red, modifier = Modifier.size(16.dp))
@@ -117,7 +131,21 @@ fun ProviderManagePortfolioScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // 2. Video Section
-            Text("Video", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Video", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                if (provider?.portfolioVideoUrl == null) {
+                    TextButton(onClick = {
+                        videoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    }) {
+                        Icon(Icons.Filled.Upload, null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Upload Video")
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             if (provider?.portfolioVideoUrl != null) {
@@ -132,19 +160,20 @@ fun ProviderManagePortfolioScreen(
                                 val mediaController = MediaController(context)
                                 mediaController.setAnchorView(this)
                                 setMediaController(mediaController)
-                                start() // Auto play when in this screen
+                                start()
                             }
                         },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-                TextButton(onClick = { /* TODO: Replace/Delete Video */ }) {
+                TextButton(onClick = { viewModel.deletePortfolioVideo() }, colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)) {
                     Icon(Icons.Filled.Delete, null)
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Remove Video")
                 }
             } else {
-                Button(onClick = { /* TODO: Pick Video */ }) {
-                    Text("Upload Video")
+                Box(modifier = Modifier.fillMaxWidth().height(100.dp).border(1.dp, Color.Gray, RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
+                    Text("No video uploaded")
                 }
             }
         }
