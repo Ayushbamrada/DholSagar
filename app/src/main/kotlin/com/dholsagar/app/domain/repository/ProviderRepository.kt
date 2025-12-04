@@ -24,6 +24,7 @@ package com.dholsagar.app.domain.repository
 
 import android.net.Uri
 import com.dholsagar.app.core.util.Resource
+import com.dholsagar.app.domain.model.AdBanner
 import com.dholsagar.app.domain.model.Booking
 import com.dholsagar.app.domain.model.ServiceProvider
 import com.dholsagar.app.presentation.onboarding_provider.TeamMember
@@ -58,4 +59,5 @@ interface ProviderRepository {
         chargeDescription: String
     ): Resource<Unit>
     suspend fun getProviderBookings(): Resource<List<Booking>>
+    suspend fun getDashboardAd(): Resource<AdBanner>
 }

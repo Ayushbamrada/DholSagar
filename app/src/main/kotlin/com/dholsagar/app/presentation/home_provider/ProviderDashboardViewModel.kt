@@ -4,6 +4,7 @@ package com.dholsagar.app.presentation.home_provider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dholsagar.app.core.util.Resource
+import com.dholsagar.app.domain.model.AdBanner
 import com.dholsagar.app.domain.model.ServiceProvider
 import com.dholsagar.app.domain.repository.AuthRepository
 import com.dholsagar.app.domain.repository.ProviderRepository
@@ -19,7 +20,8 @@ data class ProviderDashboardState(
     val provider: ServiceProvider? = null,
     val error: String? = null,
     val isSaving: Boolean = false,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val adBanner: AdBanner? = null
 )
 
 @HiltViewModel
@@ -57,11 +59,24 @@ class ProviderDashboardViewModel @Inject constructor(
                 return@launch
             }
 
+            // 1. Fetch Dynamic Ad Banner
+            // We fetch this first or in parallel so it's ready for the UI
+            when (val adResult = providerRepository.getDashboardAd()) {
+                is Resource.Success -> {
+                    _state.update { it.copy(adBanner = adResult.data) }
+                }
+                else -> {
+                    // If ad fetch fails, we just don't show it, no need to show error to user
+                }
+            }
+
+            // 2. Fetch Provider Details
             when (val result = providerRepository.getProviderDetails(uid)) {
                 is Resource.Success -> {
                     val provider = result.data!!
                     _state.update { it.copy(isLoading = false, provider = provider) }
-                    // --- Pre-fill the text fields ---
+
+                    // --- Pre-fill the text fields with existing data ---
                     _description.value = provider.description
                     _specialty.value = provider.specialty
                     _perDayCharge.value = provider.perDayCharge
@@ -102,6 +117,8 @@ class ProviderDashboardViewModel @Inject constructor(
             when(result) {
                 is Resource.Success -> {
                     _state.update { it.copy(isSaving = false, saveSuccess = true) }
+                    // Reload data to reflect changes immediately in the UI if needed
+                    // loadDashboardData()
                 }
                 is Resource.Error -> {
                     _state.update { it.copy(isSaving = false, error = result.message) }

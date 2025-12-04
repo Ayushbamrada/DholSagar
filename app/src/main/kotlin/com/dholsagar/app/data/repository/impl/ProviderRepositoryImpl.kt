@@ -336,6 +336,7 @@ import android.net.Uri
 import com.dholsagar.app.core.util.Resource
 import com.dholsagar.app.data.remote.dto.BookingDto
 import com.dholsagar.app.data.remote.dto.ServiceProviderDto
+import com.dholsagar.app.domain.model.AdBanner
 import com.dholsagar.app.domain.model.Booking
 import com.dholsagar.app.domain.model.ServiceProvider
 import com.dholsagar.app.domain.repository.ProviderRepository
@@ -566,5 +567,26 @@ class ProviderRepositoryImpl @Inject constructor(
             status = dto.status ?: "PENDING",
             startDate = startDate
         )
+    }
+    override suspend fun getDashboardAd(): Resource<AdBanner> {
+        return try {
+            // We look for a collection 'app_config' and doc 'provider_ad'
+            val snapshot = firestore.collection("app_config").document("provider_ad").get().await()
+            if (snapshot.exists()) {
+                val ad = snapshot.toObject(AdBanner::class.java)
+                Resource.Success(ad ?: AdBanner())
+            } else {
+                // Default mock ad if nothing in database
+                Resource.Success(
+                    AdBanner(
+                    title = "Diwali Special Boost!",
+                    description = "Get 5x more bookings this week by updating your calendar.",
+                    isActive = true
+                )
+                )
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Failed to load ad")
+        }
     }
 }

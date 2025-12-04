@@ -54,6 +54,8 @@ object Route {
     const val PROVIDER_DASHBOARD = "provider_dashboard"
     const val PROVIDER_BOOKINGS = "provider_bookings"
     const val PROVIDER_PROFILE = "provider_profile"
+    const val PROVIDER_EDIT_SERVICES = "provider_edit_services"
+    const val PROVIDER_MANAGE_PORTFOLIO = "provider_manage_portfolio"
 }
 
 sealed class Screen(val route: String) {
@@ -78,4 +80,6 @@ sealed class Screen(val route: String) {
     data object ProviderDashboardScreen : Screen(Route.PROVIDER_DASHBOARD)
     data object ProviderBookingsScreen : Screen(Route.PROVIDER_BOOKINGS)
     data object ProviderProfileScreen : Screen(Route.PROVIDER_PROFILE)
+    data object ProviderEditServicesScreen : Screen(Route.PROVIDER_EDIT_SERVICES)
+    data object ProviderManagePortfolioScreen : Screen(Route.PROVIDER_MANAGE_PORTFOLIO)
 }
